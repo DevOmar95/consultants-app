@@ -52,7 +52,7 @@ services:
       - consultants-net
 
   backend:
-    build: ./backend
+    build: .
     container_name: consultants-backend
     ports:
       - "8080:8080"
@@ -71,7 +71,7 @@ services:
       - consultants-net
 
   frontend:
-    build: ./frontend
+    build: ../React_front_jdk/consultants-frontend
     container_name: consultants-frontend
     ports:
       - "3000:80"
