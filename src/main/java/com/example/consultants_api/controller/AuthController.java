@@ -33,13 +33,4 @@ public class AuthController {
         return ResponseEntity.ok(new LoginResponse(token, request.getUsername()));
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody LoginRequest request) {
-        AppUser user = new AppUser();
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole("USER");
-        userRepository.save(user);
-        return ResponseEntity.ok("User created");
-    }
 }
