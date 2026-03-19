@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,6 +43,15 @@ class ConsultantServiceTest {
     }
 
     @Test
+    void getAll_returnsEmptyList() {
+        when(consultantRepository.findAll()).thenReturn(Collections.emptyList());
+
+        List<Consultant> result = consultantService.getAll();
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
     void create_savesAndFiresEvent() {
         Consultant consultant = new Consultant(null, "John", "Doe", "john@test.com", "123", "Java", "ACME");
         Consultant saved = new Consultant(1L, "John", "Doe", "john@test.com", "123", "Java", "ACME");
@@ -62,10 +72,22 @@ class ConsultantServiceTest {
     }
 
     @Test
+    void getById_found_returnsConsultant() {
+        Consultant c = new Consultant(1L, "John", "Doe", "john@test.com", "123", "Java", "ACME");
+        when(consultantRepository.findById(1L)).thenReturn(Optional.of(c));
+
+        Consultant result = consultantService.getById(1L);
+
+        assertEquals("John", result.getFirstName());
+        assertEquals("john@test.com", result.getEmail());
+    }
+
+    @Test
     void getById_notFound_throwsException() {
         when(consultantRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> consultantService.getById(99L));
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> consultantService.getById(99L));
+        assertTrue(ex.getMessage().contains("99"));
     }
 
     @Test
@@ -78,7 +100,41 @@ class ConsultantServiceTest {
         Consultant result = consultantService.update(1L, updated);
 
         assertEquals("Johnny", result.getFirstName());
+        assertEquals("johnny@test.com", result.getEmail());
+        assertEquals("789", result.getPhone());
         assertEquals("Python", result.getSpecialty());
+        assertEquals("NewCorp", result.getCompany());
         verify(consultantEventProducer).sendUpdatedEvent(any(Consultant.class));
+    }
+
+    @Test
+    void update_notFound_throwsException() {
+        Consultant updated = new Consultant(null, "Johnny", "Doe", "johnny@test.com", "789", "Python", "NewCorp");
+        when(consultantRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> consultantService.update(99L, updated));
+        verify(consultantRepository, never()).save(any());
+        verify(consultantEventProducer, never()).sendUpdatedEvent(any());
+    }
+
+    @Test
+    void search_returnsMatchingConsultants() {
+        Consultant c1 = new Consultant(1L, "John", "Doe", "john@test.com", "123", "Java", "ACME");
+        when(consultantRepository.search("Java")).thenReturn(List.of(c1));
+
+        List<Consultant> result = consultantService.search("Java");
+
+        assertEquals(1, result.size());
+        assertEquals("Java", result.get(0).getSpecialty());
+        verify(consultantRepository).search("Java");
+    }
+
+    @Test
+    void search_noResults_returnsEmptyList() {
+        when(consultantRepository.search("xyz")).thenReturn(Collections.emptyList());
+
+        List<Consultant> result = consultantService.search("xyz");
+
+        assertTrue(result.isEmpty());
     }
 }
