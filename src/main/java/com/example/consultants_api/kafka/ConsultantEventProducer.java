@@ -3,12 +3,15 @@ package com.example.consultants_api.kafka;
 import com.example.consultants_api.model.Consultant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnClass(KafkaTemplate.class)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnBean(KafkaTemplate.class)
 public class ConsultantEventProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;

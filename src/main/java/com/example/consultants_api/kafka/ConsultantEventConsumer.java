@@ -2,11 +2,15 @@ package com.example.consultants_api.kafka;
 
 import com.example.consultants_api.model.Consultant;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@ConditionalOnClass(KafkaTemplate.class)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnBean(KafkaTemplate.class)
 public class ConsultantEventConsumer {
 
     @KafkaListener(topics = "consultant.created", groupId = "consultants-group")

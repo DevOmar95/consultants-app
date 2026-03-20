@@ -3,17 +3,22 @@ package com.example.consultants_api.service;
 import com.example.consultants_api.kafka.ConsultantEventProducer;
 import com.example.consultants_api.model.Consultant;
 import com.example.consultants_api.repository.ConsultantRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class ConsultantService {
 
     private final ConsultantRepository consultantRepository;
     private final ConsultantEventProducer consultantEventProducer;
+
+    public ConsultantService(ConsultantRepository consultantRepository,
+                             @org.springframework.beans.factory.annotation.Autowired(required = false)
+                             ConsultantEventProducer consultantEventProducer) {
+        this.consultantRepository = consultantRepository;
+        this.consultantEventProducer = consultantEventProducer;
+    }
 
     public List<Consultant> getAll() {
         return consultantRepository.findAll();
@@ -30,7 +35,9 @@ public class ConsultantService {
 
     public Consultant create(Consultant consultant) {
         Consultant saved = consultantRepository.save(consultant);
-        consultantEventProducer.sendCreatedEvent(saved);
+        if (consultantEventProducer != null) {
+            consultantEventProducer.sendCreatedEvent(saved);
+        }
         return saved;
     }
 
@@ -43,12 +50,16 @@ public class ConsultantService {
         existing.setSpecialty(updated.getSpecialty());
         existing.setCompany(updated.getCompany());
         Consultant saved = consultantRepository.save(existing);
-        consultantEventProducer.sendUpdatedEvent(saved);
+        if (consultantEventProducer != null) {
+            consultantEventProducer.sendUpdatedEvent(saved);
+        }
         return saved;
     }
 
     public void delete(Long id) {
         consultantRepository.deleteById(id);
-        consultantEventProducer.sendDeletedEvent(id);
+        if (consultantEventProducer != null) {
+            consultantEventProducer.sendDeletedEvent(id);
+        }
     }
 }
